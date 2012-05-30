@@ -7,16 +7,18 @@ class ProcessRawInput
     lines.shift
     
     lines_new = []
-    lines_new << ["Date", "Close", "Volume Millions", "Close Delta"].join("\t")
+    lines_new << ["Date", "Vol", "ClosePr", "Delta", "Close"].join("\t")
     previous_day_close = nil
     lines.each do |line|
       results = parse_line(line, previous_day_close)
       previous_day_close = results[:close]
       row = []
       row << results[:date]
-      row << results[:close]
       row << results[:volume_millions]
-      row << results[:close_delta]
+      row << results[:close_prev]
+      row << results[:delta]
+      row << results[:close]
+      
       lines_new << row.join("\t")
     end
     
@@ -35,8 +37,14 @@ class ProcessRawInput
     results[:date] = pieces[0]
     results[:close] = pieces[4]
     results[:volume_millions] = (pieces[5].to_i / 1_000_000.0).round.to_s
-    results[:close_delta] = "NA"
-    results[:close_delta] = (results[:close].to_f - previous_day_close.to_f).round(2).to_s if previous_day_close
+    results[:close_prev] = "NA"
+    results[:delta] = "NA"
+    
+    if previous_day_close
+      results[:close_prev] = previous_day_close 
+      results[:delta] = (results[:close].to_f - previous_day_close.to_f).round(2).to_s
+    end
+    
     return results
   end
 
