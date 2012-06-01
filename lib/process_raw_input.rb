@@ -42,8 +42,8 @@ class ProcessRawInput
 
     results[:close] = pieces[4]
     results[:volume_millions] = (pieces[5].to_i / 1_000_000.0).round.to_s
-    results[:close_prev] = "NA"
-    results[:delta] = "NA"
+    results[:close_prev] = ""
+    results[:delta] = ""
     results[:day_mon] = date.day
     results[:mon] = date.mon
     results[:day_week] = date.wday
