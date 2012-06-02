@@ -14,4 +14,5 @@ end
 
 if opts[:generate_function]
   scenario = Scenario.new
+  scenario.run
 end

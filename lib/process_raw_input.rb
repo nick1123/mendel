@@ -7,21 +7,21 @@ class ProcessRawInput
     lines.shift
 
     lines_new = []
-    lines_new << ["Date", "Vol", "ClosePr", "Delta", "Close", "DayMon", "Month", "DayWk"].join("\t")
-    previous_day_close = nil
+    lines_new << ["Date", "PrOpen", "PrHigh", "PrLow", "PrClose", "PrVol", "BuySell", "Delta"].join("\t")
+    previous_day_hash = {}
     lines.each do |line|
-      results = parse_line(line, previous_day_close)
-      previous_day_close = results[:close]
+      day_hash = parse_line(line, previous_day_hash)
       row = []
-      row << results[:date]
-      row << results[:volume_millions]
-      row << results[:close_prev]
-      row << results[:delta]
-      row << results[:close]
-      row << results[:day_mon]
-      row << results[:mon]
-      row << results[:day_week]
+      row << day_hash[:date]
+      row << day_hash[:pr_open]
+      row << day_hash[:pr_high]
+      row << day_hash[:pr_low]
+      row << day_hash[:pr_close]
+      row << day_hash[:pr_vol]
+      row << day_hash[:buy_or_sell]
+      row << day_hash[:delta]
 
+      previous_day_hash = day_hash
       lines_new << row.join("\t")
     end
 
@@ -34,28 +34,40 @@ class ProcessRawInput
     return IO.readlines(File.join(RAW_INPUT_DIR, '/original.csv'))
   end
 
-  def self.parse_line(line, previous_day_close=nil)
+  def self.parse_line(line, previous_day_hash)
+    price_divisor = 10_000.0
+    round = 5
     pieces = line.split(',')
-    results = {}
-    results[:date] = pieces[0]
-    date = Date.strptime(results[:date], '%Y-%m-%d')
+    day_hash = {}
+    day_hash[:date] = pieces[0]
 
-    results[:close] = pieces[4]
-    results[:volume_millions] = (pieces[5].to_i / 1_000_000.0).round.to_s
-    results[:close_prev] = ""
-    results[:delta] = ""
-    results[:day_mon] = date.day
-    results[:mon] = date.mon
-    results[:day_week] = date.wday
+    day_hash[:open]  = (pieces[1].to_f / price_divisor).round(round)
+    day_hash[:high]  = (pieces[2].to_f / price_divisor).round(round)
+    day_hash[:low]   = (pieces[3].to_f / price_divisor).round(round)
+    day_hash[:close] = (pieces[4].to_f / price_divisor).round(round)
+    day_hash[:vol]   = (pieces[5].to_f / 1_000_000_000).round(round).to_s
+    
+    day_hash[:pr_open]  = previous_day_hash[:open]
+    day_hash[:pr_high]  = previous_day_hash[:high]
+    day_hash[:pr_low]   = previous_day_hash[:low]
+    day_hash[:pr_close] = previous_day_hash[:close]
+    day_hash[:pr_vol]   = previous_day_hash[:vol]
+    
+    
+    day_hash[:delta] = ""
+    day_hash[:buy_or_sell] = ""
 
-    # Time.parse("#{results[:date]} 00:00:00 -0000")
-
-    if previous_day_close
-      results[:close_prev] = previous_day_close
-      results[:delta] = (results[:close].to_f - previous_day_close.to_f).round(2).to_s
+    if day_hash[:pr_close]
+      day_hash[:delta] = ((day_hash[:close].to_f - day_hash[:pr_close].to_f) * price_divisor).round(round).to_s
+      day_hash[:buy_or_sell] = (day_hash[:delta].to_f > 0 ? "BUY" : "SELL")
     end
 
-    return results
+    # date = Date.strptime(results[:date], '%Y-%m-%d')
+    # day_hash[:day_mon] = date.day
+    # day_hash[:mon] = date.mon
+    # day_hash[:day_week] = date.wday
+
+    return day_hash
   end
 
 

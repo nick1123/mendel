@@ -1,10 +1,14 @@
 class Basket
   PROCESS_INPUT_PATH = File.join(File.expand_path(File.dirname(__FILE__)), '../flat_files/inputs/processed.tsv')
-  def initialize(size=5)
+  def initialize(size=2)
     @size = size
     @solutions = []
     load_test_data
     generate_solutions
+  end
+  
+  def run
+    run_iteration
   end
 
   def load_test_data
@@ -12,20 +16,35 @@ class Basket
     lines = IO.readlines(PROCESS_INPUT_PATH)
     # Remove header
     lines.shift
-    lines.each do |line|
-      hsh = {}
+    lines[0..3].each do |line|
+      day_hash = {:data => {}, :results => {}}
       pieces = line.strip.split("\t")
-      hsh[:vol] = pieces[1]
-      hsh[:close_pr] = pieces[2]
-      hsh[:delta] = pieces[3]
+      
+      # PrOpen	PrHigh	PrLow	PrClose PrVol	
+      day_hash[:data][:PrOpen]  = pieces[1]
+      day_hash[:data][:PrHigh]  = pieces[2]
+      day_hash[:data][:PrLow]   = pieces[3]
+      day_hash[:data][:PrClose] = pieces[4]
+      day_hash[:data][:PrVol]   = pieces[5]
+      
+      # BuySell	Delta
+      day_hash[:results][:BuySell] = pieces[6]
+      day_hash[:results][:Delta]   = pieces[7]
 
-      next if hsh[:delta].size == 0
-      next if hsh[:close_pr].size == 0
+      next if day_hash[:results][:BuySell].nil?
 
-      @test_data << hsh
+      @test_data << day_hash
     end
 
     puts @test_data
+  end
+  
+  def run_iteration
+    @solutions.each do |solution|
+      @test_data.each do |day_hash|
+        solution.score(day_hash)
+      end
+    end
   end
 
   def generate_solutions
