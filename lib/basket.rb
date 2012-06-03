@@ -1,15 +1,22 @@
 class Basket
   PROCESS_INPUT_PATH = File.join(File.expand_path(File.dirname(__FILE__)), '../flat_files/inputs/processed.tsv')
-  def initialize(size=160)
+  OUTPUT_PATH = File.join(File.expand_path(File.dirname(__FILE__)), '../flat_files/output/log.txt')
+  
+  def initialize(size=1_000)
     @size = size
     @solutions = []
     load_test_data
     generate_random_solutions
   end
   
+  def write(data)
+    File.open(OUTPUT_PATH, 'a') {|f| f.write(data.to_s + "\n\n")}
+  end
+  
   def run
     (0..99).each do |i|
-      puts "--- #{i}"
+      write("** Iteration #{i}")
+      puts "** Iteration #{i}"
       run_iteration
     end
   end
@@ -33,6 +40,10 @@ class Basket
       # BuySell	Delta
       day_hash[:results][:Direction] = pieces[6]
       day_hash[:results][:Delta]     = pieces[7]
+      
+      (2..ProcessRawInput::MAX_SMA).each_with_index do |sma_size, index|
+        day_hash[:data]["SMA_#{sma_size}".to_sym] = pieces[8 + index]
+      end
 
       next if day_hash[:results][:Direction].nil?
 
@@ -40,18 +51,31 @@ class Basket
     end
   end
   
+  def solutions_abbrev
+    (@solutions.map {|s| s.to_s_abbrev})[0..9].join("\n")
+  end
+  
+  def solutions_full
+    (@solutions.map {|s| s.to_s}).join("\n")
+  end
+  
   def run_iteration
     run_test_data
     sort_solutions
     best_solutions
     calc_convergence
+
     puts "**********************************************************"
-    puts @solutions
+    puts solutions_abbrev
     puts "Conv: #{@convergence}"
+
+    write("**********************************************************")
+    write(solutions_full)
+    write("Conv: #{@convergence}")
+
     cross_best_solutions
     mutate_best_solutions    
-    generate_random_solutions
-    
+    generate_random_solutions    
   end
   
   def run_test_data

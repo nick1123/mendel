@@ -1,14 +1,20 @@
 class ProcessRawInput
   RAW_INPUT_DIR = File.join(File.expand_path(File.dirname(__FILE__)), '../flat_files/inputs/raw')
   PROCESS_INPUT_PATH = File.join(File.expand_path(File.dirname(__FILE__)), '../flat_files/inputs/processed.tsv')
+  MAX_SMA = 20
   def self.run
     lines = load_file
     # Remove the header
     lines.shift
     lines.reverse!
 
+    header = ["Date", "PrOpen", "PrHigh", "PrLow", "PrClose", "PrVol", "BuySell", "Delta"]
+    (2..MAX_SMA).each do |size|
+      header << "SMA_#{size}"
+    end
+    
     lines_new = []
-    lines_new << ["Date", "PrOpen", "PrHigh", "PrLow", "PrClose", "PrVol", "BuySell", "Delta"].join("\t")
+    lines_new << header.join("\t")
     previous_day_hash = {}
     lines.each do |line|
       day_hash = parse_line(line, previous_day_hash)
@@ -21,6 +27,10 @@ class ProcessRawInput
       row << day_hash[:pr_vol]
       row << day_hash[:buy_or_sell]
       row << day_hash[:delta]
+
+      (2..MAX_SMA).each do |size|
+        row << day_hash["sma_#{size}".to_sym]
+      end
 
       previous_day_hash = day_hash
       lines_new << row.join("\t")
@@ -61,6 +71,21 @@ class ProcessRawInput
     if day_hash[:pr_close]
       day_hash[:delta] = ((day_hash[:close].to_f - day_hash[:pr_close].to_f) * price_divisor).round(round).to_s
       day_hash[:buy_or_sell] = (day_hash[:delta].to_f > 0 ? "BUY" : "SELL")
+    
+      day_hash[:sma] = previous_day_hash[:sma] 
+      day_hash[:sma] ||= {}
+    
+      (2..MAX_SMA).each do |sma_size|
+        day_hash[:sma][sma_size] ||= []
+        day_hash[:sma][sma_size] << day_hash[:pr_close].to_f
+      
+        if day_hash[:sma][sma_size].size > sma_size
+          day_hash[:sma][sma_size] = day_hash[:sma][sma_size][(-1 * sma_size)..-1]
+        end
+      
+        avg = average(day_hash[:sma][sma_size])
+        day_hash["sma_#{sma_size}".to_sym] = avg.round(round)
+      end
     end
 
     # date = Date.strptime(results[:date], '%Y-%m-%d')
@@ -69,6 +94,10 @@ class ProcessRawInput
     # day_hash[:day_week] = date.wday
 
     return day_hash
+  end
+  
+  def self.average(arr)
+    return (arr.inject(0.0) { |sum, el| sum + el }) / arr.size
   end
 
 

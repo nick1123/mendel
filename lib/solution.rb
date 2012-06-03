@@ -103,7 +103,11 @@ class Solution
   end
 
   def to_s
-    "#{@signature[0..4]}  #{@origin}  LC: #{@life_cycle_count}  W%: #{win_percent} (#{@win}/#{@loss})  P: #{@profit.round(2)}  #{@expression}"
+    "#{@signature}  #{@origin}  LC: #{@life_cycle_count}  W%: #{win_percent} (#{@win}/#{@loss})  P: #{@profit.round(2)}  #{@expression}"
+  end
+  
+  def to_s_abbrev
+    "#{@signature[0..4]}  #{@origin}  LC: #{@life_cycle_count}  W%: #{win_percent} (#{@win}/#{@loss})  P: #{@profit.round(2)}  #{@expression[0..15]}..."
   end
 
 end
