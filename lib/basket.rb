@@ -1,14 +1,17 @@
 class Basket
   PROCESS_INPUT_PATH = File.join(File.expand_path(File.dirname(__FILE__)), '../flat_files/inputs/processed.tsv')
-  def initialize(size=2)
+  def initialize(size=160)
     @size = size
     @solutions = []
     load_test_data
-    generate_solutions
+    generate_random_solutions
   end
   
   def run
-    run_iteration
+    (0..99).each do |i|
+      puts "--- #{i}"
+      run_iteration
+    end
   end
 
   def load_test_data
@@ -16,7 +19,7 @@ class Basket
     lines = IO.readlines(PROCESS_INPUT_PATH)
     # Remove header
     lines.shift
-    lines[0..3].each do |line|
+    lines.each do |line|
       day_hash = {:data => {}, :results => {}}
       pieces = line.strip.split("\t")
       
@@ -28,26 +31,77 @@ class Basket
       day_hash[:data][:PrVol]   = pieces[5]
       
       # BuySell	Delta
-      day_hash[:results][:BuySell] = pieces[6]
-      day_hash[:results][:Delta]   = pieces[7]
+      day_hash[:results][:Direction] = pieces[6]
+      day_hash[:results][:Delta]     = pieces[7]
 
-      next if day_hash[:results][:BuySell].nil?
+      next if day_hash[:results][:Direction].nil?
 
       @test_data << day_hash
     end
-
-    puts @test_data
   end
   
   def run_iteration
+    run_test_data
+    sort_solutions
+    best_solutions
+    calc_convergence
+    puts "**********************************************************"
+    puts @solutions
+    puts "Conv: #{@convergence}"
+    cross_best_solutions
+    mutate_best_solutions    
+    generate_random_solutions
+    
+  end
+  
+  def run_test_data
     @solutions.each do |solution|
+      solution.increment_life_cycle_count
+      next if solution.frozen?
       @test_data.each do |day_hash|
         solution.score(day_hash)
       end
+      
+      solution.freeze      
+    end    
+  end
+    
+  def sort_solutions
+    @solutions = @solutions.sort {|a,b| b.profit <=> a.profit}    
+  end
+  
+  def best_solutions
+    @solutions = @solutions[0..(@size/4 -1)]
+    @best_solutions = @solutions.map {|s| s.copy}
+  end
+  
+  def calc_convergence
+    best  = @best_solutions[0].profit
+    worst = @best_solutions[-1].profit
+    @convergence = ((best - worst) / best).round(3)    
+  end
+  
+  def cross_best_solutions
+    @best_solutions.each do |solution|
+      index = rand(@best_solutions.size)
+      solution2 = @best_solutions[index]
+      next if solution.eq?(solution2)
+      new_solution = solution.cross(solution2)
+      next if solution.eq?(new_solution)
+      next if solution2.eq?(new_solution)
+      @solutions << new_solution
     end
   end
 
-  def generate_solutions
+  def mutate_best_solutions
+    @best_solutions.each do |solution|
+      new_solution = solution.mutate
+      next if solution.eq?(new_solution)
+      @solutions << new_solution
+    end    
+  end
+  
+  def generate_random_solutions
     while @solutions.size < @size
       @solutions << Solution.new
     end

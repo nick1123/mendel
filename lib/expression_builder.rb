@@ -6,7 +6,7 @@ class ExpressionBuilder
   end
 
   def self.build_piece(var)
-    power = sign + (1 + rand).round(2).to_s
+    power = sign + (1 + rand).round(Solution::EXPONENT_ROUND).to_s
     return "( #{var} ** #{power} )"
   end
 

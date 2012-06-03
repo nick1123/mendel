@@ -5,6 +5,7 @@ class ProcessRawInput
     lines = load_file
     # Remove the header
     lines.shift
+    lines.reverse!
 
     lines_new = []
     lines_new << ["Date", "PrOpen", "PrHigh", "PrLow", "PrClose", "PrVol", "BuySell", "Delta"].join("\t")
@@ -36,7 +37,7 @@ class ProcessRawInput
 
   def self.parse_line(line, previous_day_hash)
     price_divisor = 10_000.0
-    round = 5
+    round = 6
     pieces = line.split(',')
     day_hash = {}
     day_hash[:date] = pieces[0]

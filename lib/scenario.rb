@@ -1,11 +1,12 @@
 class Scenario
   def initialize
     @basket = Basket.new
-    puts @basket
+    # puts @basket
     
   end
   
   def run
     @basket.run
+    # puts @basket
   end
 end
