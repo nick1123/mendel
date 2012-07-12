@@ -17,5 +17,8 @@ Dir[File.dirname(__FILE__) + '/lib/*.rb'].each {|file| require file }
 #   scenario.run
 # end
 
-tree = TreeFactory.build
+
+tree = Tree.new
 puts tree
+puts "****"
+puts tree.random_node.inspect

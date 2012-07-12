@@ -1,11 +1,15 @@
 class Tree
   
-  def initialize(root_node)
-    @root_node = root_node
-    @node_hash = root_node.node_hash
+  def initialize
+    @root_node = NodeFactory.build
+  end
+
+  def random_node
+    list = @root_node.node_list.flatten
+    return list[rand(list.size)]
   end
   
   def to_s
-    return self.object_id
+    return @root_node.to_s
   end
 end
