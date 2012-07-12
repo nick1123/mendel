@@ -15,12 +15,13 @@ module Gene
       return list
     end
   
-    def to_s
+    def exp
       return "(#{@operand1} #{@operator} #{@operand2})"
     end
 
-    def signature
-      Digest::MD5.hexdigest(to_s)
+    def to_s
+      return exp
     end
+
   end
 end

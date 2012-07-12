@@ -1,6 +1,5 @@
 module Gene
-    class Tree
-  
+  class Tree
     def initialize
       @root_node = NodeFactory.build
     end
@@ -10,8 +9,27 @@ module Gene
       return list[rand(list.size)]
     end
   
-    def to_s
-      return @root_node.to_s
+    def exp
+      return @root_node.exp
     end
+
+    def full
+      return "#{signature} #{exp}"
+    end
+
+    def to_s(max=80)
+      str = "#{signature[0..3]} #{exp}"
+      if str.size > max
+        str = str[0..(max-4)] + '...'
+      end
+
+      return str
+    end
+
+    def signature
+      Digest::MD5.hexdigest(exp)
+    end
+
+
   end
 end
