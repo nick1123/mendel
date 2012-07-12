@@ -4,10 +4,10 @@ class NodeFactory
   MAX_DEPTH = 4
   
   def self.build(depth=1)
-    return Node.new(operand(depth), operator, operand(depth))
+    return Node.new(build_operand(depth), build_operator, build_operand(depth))
   end
   
-  def self.operand(depth)
+  def self.build_operand(depth)
     op = nil
     if depth <= MAX_DEPTH
       op = ((rand > 0.50) ? random_value : NodeFactory.build(depth+1))
@@ -24,7 +24,7 @@ class NodeFactory
     return value
   end
   
-  def self.operator
+  def self.build_operator
     return OPERATORS[rand(OPERATORS.size)]
   end
 

@@ -1,12 +1,10 @@
+require 'digest/md5'
+
 class Node
   def initialize(operand1, operator, operand2)
     @operand1 = operand1
     @operator = operator
     @operand2 = operand2
-  end
-
-  def guid
-    return self.object_id
   end
 
   def node_list
@@ -15,9 +13,12 @@ class Node
     list << @operand2.node_list if @operand2.is_a?(Node)
     return list
   end
-
   
   def to_s
     return "(#{@operand1} #{@operator} #{@operand2})"
+  end
+
+  def signature
+    Digest::MD5.hexdigest(to_s)
   end
 end
