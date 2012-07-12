@@ -3,7 +3,7 @@ module Gene
   
     OPERATORS = ['+', '-', '*', '/']
     MAX_DEPTH = 8
-    CHANCE_NEW_LEVEL = 0.8
+    CHANCE_NEW_LEVEL = 0.5
   
     def self.build(depth=1)
       return Node.new(build_operand(depth), build_operator, build_operand(depth))
