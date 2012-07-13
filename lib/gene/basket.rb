@@ -8,6 +8,14 @@ module Gene
 
     def run
       @solutions.each {|s| s.build_score(@data_array)}
+      puts @solutions
+      puts ""
+      sort_solutions
+      puts @solutions
+    end
+
+    def sort_solutions
+      @solutions = @solutions.sort {|a,b| a.score <=> b.score}    
     end
 
     def reset

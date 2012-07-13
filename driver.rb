@@ -26,4 +26,4 @@ data_array = [
 
 basket = Gene::Basket.new(data_array)
 basket.run
-puts basket
+# puts basket

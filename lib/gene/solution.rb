@@ -1,5 +1,7 @@
 module Gene
   class Solution
+    attr_reader :score
+
     def initialize(tree=nil)
       @tree = (tree.nil? ? Tree.new : tree)
       @score = nil
@@ -26,10 +28,10 @@ module Gene
           end
         end
       rescue ZeroDivisionError => e
-        @score = nil
+        @score = -1
       end      
     end
-    
+
     def to_s
       return "s: #{@score}\t #{@tree.to_s}"
     end
